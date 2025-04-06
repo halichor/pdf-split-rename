@@ -1,4 +1,3 @@
-
 const modal = document.getElementById('modal');
 const modalText = document.getElementById('modalText');
 const modalClose = document.getElementById('modalClose');
@@ -54,11 +53,26 @@ function validateFileType(file, type) {
 handleFileDrop(document.getElementById('pdfDrop'), document.getElementById('pdfFile'), 'pdfFileName', 'pdf');
 handleFileDrop(document.getElementById('csvDrop'), document.getElementById('csvFile'), 'csvFileName', 'csv');
 
-document.getElementById('renameFiles').addEventListener('change', (e) => {
-    const visible = e.target.checked;
-    document.getElementById('renameOptions').style.display = visible ? 'block' : 'none';
-    if (visible) updatePreview();
+// Replace checkbox with buttons for Rename option
+document.getElementById('retainButton').addEventListener('click', () => {
+    // When "retain" is clicked, set retain button to active and rename button to inactive
+    document.getElementById('renameButton').classList.remove('active');
+    document.getElementById('retainButton').classList.add('active');
+
+    document.getElementById('renamePattern').value = ''; // Clear rename pattern
+    document.getElementById('renameOptions').style.display = 'none'; // Hide rename options
+    updatePreview(); // Ensure preview is updated
 });
+
+document.getElementById('renameButton').addEventListener('click', () => {
+    // When "rename" is clicked, set rename button to active and retain button to inactive
+    document.getElementById('retainButton').classList.remove('active');
+    document.getElementById('renameButton').classList.add('active');
+
+    document.getElementById('renameOptions').style.display = 'block'; // Show rename options
+    updatePreview(); // Ensure preview is updated
+});
+
 
 document.getElementById('renamePattern').addEventListener('input', updatePreview);
 document.getElementById('alwaysNumber').addEventListener('change', updatePreview);
@@ -110,11 +124,21 @@ function renderCSVButtons() {
     });
 }
 
+// Function to handle the page preview update
 function updatePreview() {
     const pattern = document.getElementById('renamePattern').value;
     const alwaysNumber = document.getElementById('alwaysNumber').checked;
     const previewContainer = document.getElementById('previewFilenames');
     const pdfFile = document.getElementById('pdfFile').files[0];
+
+    // Only proceed if the rename button is active
+    const renameButtonActive = document.getElementById('renameButton').classList.contains('active');
+
+    // If the rename button isn't active, hide the preview container
+    if (!renameButtonActive) {
+        previewContainer.style.display = 'none';
+        return;
+    }
 
     if (!pattern || !pdfFile) {
         previewContainer.innerHTML = '';
@@ -160,8 +184,9 @@ function updatePreview() {
                     return formatFilename(pattern, data, idx, fileCount, alwaysNumber);
                 });
 
-                // Display the preview filenames
-                previewContainer.innerHTML = `<strong>Preview Filenames:</strong><ul>${previews.map(name => `<li>${name}</li>`).join('')}</ul>`;
+                // Display the preview filenames using the old HTML structure
+                previewContainer.innerHTML = `<strong>Preview Filenames:</strong><div class="filename-list"><ul>${previews.map(name => `<li>${name}</li>`).join('')}</ul></div>`;
+                previewContainer.style.display = 'block'; // Show the preview container
             })
             .catch((err) => {
                 console.error("Error loading PDF:", err);
@@ -172,6 +197,112 @@ function updatePreview() {
         previewContainer.innerHTML = 'Error: Could not read the PDF file.';
     });
 }
+
+function clearInput() {
+    // Reset all text, file, and other inputs to their default state
+    const inputs = document.querySelectorAll('input');
+    inputs.forEach(input => {
+        if (input.type === 'file') {
+            // Reset file input to default
+            input.value = '';  
+            // Reset the file name label in the UI
+            const fileLabel = input.nextElementSibling;
+            if (fileLabel && fileLabel.tagName.toLowerCase() === 'span') {
+                fileLabel.textContent = 'No file selected';  // Default label text
+            }
+        } else if (input.type === 'text' || input.type === 'number') {
+            // Clear text and number inputs
+            input.value = ''; 
+        } else if (input.type === 'checkbox') {
+            // Reset checkboxes (e.g., "always number" checkbox)
+            input.checked = false;
+        }
+    });
+
+    // Reset buttons to reflect "retain" state
+    document.getElementById('renameButton').classList.remove('active');
+    document.getElementById('retainButton').classList.add('active');
+
+    // Hide the rename options when "retain" is active
+    document.getElementById('renameOptions').style.display = 'none';
+
+    // Reset the filename display in the drop zone(s)
+    const dropZoneFileNameDisplays = document.querySelectorAll('.drop-zone span');
+    dropZoneFileNameDisplays.forEach(span => {
+        span.textContent = 'No file selected';  // Reset text to default
+    });
+
+    // Clear the preview container
+    const previewContainer = document.getElementById('previewFilenames');
+    if (previewContainer) {
+        previewContainer.innerHTML = '';  // Clear any preview content
+        previewContainer.style.display = 'none';  // Hide the preview container
+    }
+
+    // Reset the download link section (hide it when no files are available)
+    const downloadLinkContainer = document.getElementById('downloadLink');
+    if (downloadLinkContainer) {
+        downloadLinkContainer.innerHTML = ''; // Remove download button or content
+    }
+
+    // Clear any CSV field buttons and reset CSV data
+    const csvFieldsContainer = document.getElementById('csvFields');
+    csvFieldsContainer.innerHTML = '';  // Remove any CSV buttons
+
+    // Reset CSV data and headers
+    csvData = [];
+    csvHeaders = [];
+
+    // Reset any other UI elements related to files or input
+    const fileNameDisplay = document.getElementById('fileNameDisplay'); // Adjust ID if needed
+    if (fileNameDisplay) {
+        fileNameDisplay.textContent = 'No file selected';  // Reset to default
+    }
+    
+    // Reset the pages per split input to the default value (e.g., 1)
+    const pagesPerSplitInput = document.getElementById('pagesPerSplit');
+    if (pagesPerSplitInput) {
+        pagesPerSplitInput.value = 1;  // Or whatever your default is
+    }
+
+    // Reset the rename pattern input
+    const renamePatternInput = document.getElementById('renamePattern');
+    if (renamePatternInput) {
+        renamePatternInput.value = '';  // Clear the pattern
+    }
+
+    // Reset the always number checkbox
+    const alwaysNumberCheckbox = document.getElementById('alwaysNumber');
+    if (alwaysNumberCheckbox) {
+        alwaysNumberCheckbox.checked = false;  // Uncheck by default
+    }
+
+    // Optionally, reset other elements if necessary (e.g., settings or other options)
+
+    // Optionally focus the first input field after clearing
+    inputs[0]?.focus();
+}
+
+
+// Function to handle input change and refresh preview list
+function setupAutoRefreshForInputs() {
+    const pagesPerSplitInput = document.getElementById('pagesPerSplit');
+    const renamePatternInput = document.getElementById('renamePattern');
+    const alwaysNumberInput = document.getElementById('alwaysNumber');
+    const pdfFileInput = document.getElementById('pdfFile');
+
+    // Add event listeners to the relevant inputs
+    pagesPerSplitInput.addEventListener('input', updatePreview);  // Refresh on pages per split change
+    renamePatternInput.addEventListener('input', updatePreview);  // Refresh on rename pattern change
+    alwaysNumberInput.addEventListener('change', updatePreview);  // Refresh on always number toggle
+    pdfFileInput.addEventListener('change', updatePreview);  // Refresh on file selection change
+}
+
+// Call the setup function when the page is ready
+document.addEventListener('DOMContentLoaded', () => {
+    setupAutoRefreshForInputs();
+});
+
 
 function formatFilename(pattern, data, index, totalCount, alwaysNumber) {
     let filename = pattern;
@@ -194,17 +325,18 @@ function formatFilename(pattern, data, index, totalCount, alwaysNumber) {
     return filename + ".pdf";
 }
 
-
 async function processFiles() {
     const pdfInput = document.getElementById('pdfFile').files[0];
     if (!pdfInput) return showModal('Upload a PDF file first.');
+
     const pdfBytes = await pdfInput.arrayBuffer();
     const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
     const totalPages = pdfDoc.getPageCount();
     const pagesPerSplit = parseInt(document.getElementById('pagesPerSplit').value);
     if (!pagesPerSplit || pagesPerSplit < 1) return showModal('Please enter a valid number of pages per split.');
 
-    const rename = document.getElementById('renameFiles').checked;
+    // Check the active state of the buttons instead of checkbox
+    const renameButtonActive = document.getElementById('renameButton').classList.contains('active');
     const pattern = document.getElementById('renamePattern').value;
     const alwaysNumber = document.getElementById('alwaysNumber').checked;
 
@@ -220,7 +352,7 @@ async function processFiles() {
         const splitPdfBytes = await newPdf.save();
 
         let filename = `file_${splitIndex + 1}.pdf`;
-        if (rename) {
+        if (renameButtonActive) {
             const data = csvData[splitIndex] || {};
             filename = formatFilename(pattern, data, splitIndex, fileCount, alwaysNumber);
         }
