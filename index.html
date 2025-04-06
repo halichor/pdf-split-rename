@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PDF Split & Rename</title>
+  <script src="https://unpkg.com/pdf-lib"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+</head>
+<body>
+  <h1>PDF Split & Rename</h1>
+
+  <label>Upload PDF:
+    <input type="file" id="pdfFile" accept="application/pdf">
+  </label><br>
+
+  <label>Upload CSV (optional):
+    <input type="file" id="csvFile" accept=".csv">
+  </label><br>
+
+  <label>Pages per split:
+    <input type="number" id="pagesPerSplit" value="1" min="1">
+  </label><br>
+
+  <label><input type="checkbox" id="renameFiles"> Rename files</label><br>
+  <div id="renameOptions" style="display:none">
+    <label>Rename pattern (use {name}, {num_count}):
+      <input type="text" id="renamePattern" value="{name} - file">
+    </label><br>
+    <label>If using {name}, choose CSV column:
+      <select id="csvColumn"></select>
+    </label><br>
+    <label><input type="checkbox" id="alwaysNumber"> Always include numbering</label>
+  </div><br>
+
+  <button onclick="processFiles()">Process</button>
+  <div id="downloadLink"></div>
+
+  <script>
+    let csvData = [];
+
+    document.getElementById('renameFiles').addEventListener('change', (e) => {
+      document.getElementById('renameOptions').style.display = e.target.checked ? 'block' : 'none';
+    });
+
+    document.getElementById('csvFile').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        Papa.parse(file, {
+          header: true,
+          complete: (results) => {
+            csvData = results.data;
+            const headers = results.meta.fields;
+            const select = document.getElementById('csvColumn');
+            select.innerHTML = headers.map(h => `<option value="${h}">${h}</option>`).join('');
+          }
+        });
+      }
+    });
+
+    async function processFiles() {
+      const pdfInput = document.getElementById('pdfFile').files[0];
+      if (!pdfInput) return alert('Upload a PDF file first.');
+
+      const pdfBytes = await pdfInput.arrayBuffer();
+      const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
+      const totalPages = pdfDoc.getPageCount();
+
+      const pagesPerSplit = parseInt(document.getElementById('pagesPerSplit').value);
+      const rename = document.getElementById('renameFiles').checked;
+      const pattern = document.getElementById('renamePattern').value;
+      const alwaysNumber = document.getElementById('alwaysNumber').checked;
+      const nameColumn = document.getElementById('csvColumn').value;
+
+      const zip = new JSZip();
+      const fileCount = Math.ceil(totalPages / pagesPerSplit);
+      const digits = fileCount.toString().length;
+
+      for (let i = 0; i < fileCount; i++) {
+        const newPdf = await PDFLib.PDFDocument.create();
+        const start = i * pagesPerSplit;
+        const end = Math.min(start + pagesPerSplit, totalPages);
+        const copiedPages = await newPdf.copyPages(pdfDoc, Array.from({length: end - start}, (_, j) => start + j));
+        copiedPages.forEach(p => newPdf.addPage(p));
+        const pdfBytes = await newPdf.save();
+
+        let filename = `file_${String(i + 1).padStart(digits, '0')}.pdf`;
+        if (rename) {
+          let nameValue = csvData[i]?.[nameColumn] || `unknown`;
+          let numVal = String(i + 1).padStart(digits, '0');
+          filename = pattern.replace('{name}', nameValue).replace('{num_count}', numVal);
+          if (!pattern.includes('{num_count}') && alwaysNumber) {
+            filename += `_${numVal}`;
+          }
+          filename += `.pdf`;
+        }
+
+        zip.file(filename, pdfBytes);
+      }
+
+      const blob = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'output_files.zip';
+      link.textContent = 'Download ZIP';
+      document.getElementById('downloadLink').innerHTML = '';
+      document.getElementById('downloadLink').appendChild(link);
+    }
+  </script>
+</body>
+</html>
