@@ -4,11 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>PDF Split & Rename</title>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
     <link rel="stylesheet" href="styles.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap"
+        rel="stylesheet">
 
     <script src="https://unpkg.com/pdf-lib"></script>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -17,52 +22,72 @@
 
 <body>
     <main class="container">
-        <h1>PDF Split & Rename</h1>
+        <div class="body-wrapper">
+            <div class="upload-split">
+                <!-- File Drop -->
+                <div class="drop-zone-container">
+                    <div id="pdfDrop" class="drop-zone" onclick="document.getElementById('pdfFile').click()">Drop PDF
+                        here
+                        or
+                        click
+                        to browse
+                        <input type="file" id="pdfFile" accept="application/pdf" hidden>
+                        <span id="pdfFileName">No file selected</span>
+                    </div>
 
-        <!-- File Drop -->
-        <div class="drop-zone-container">
-            <div id="pdfDrop" class="drop-zone" onclick="document.getElementById('pdfFile').click()">Drop PDF here or
-                click
-                to browse
-                <input type="file" id="pdfFile" accept="application/pdf" hidden>
-                <span id="pdfFileName">No file selected</span>
-            </div>
+                    <div id="csvDrop" class="drop-zone" onclick="document.getElementById('csvFile').click()">Drop CSV
+                        here
+                        or
+                        click
+                        to browse
+                        <input type="file" id="csvFile" accept=".csv" hidden>
+                        <span id="csvFileName">No file selected</span>
+                    </div>
+                </div>
 
-            <div id="csvDrop" class="drop-zone" onclick="document.getElementById('csvFile').click()">Drop CSV here or
-                click
-                to browse
-                <input type="file" id="csvFile" accept=".csv" hidden>
-                <span id="csvFileName">No file selected</span>
+                <!-- Split and Rename -->
+                <div class="split-rename">
+                    <div class="split-pdf">
+                        <h2>Options</h2>
+                        <!-- Split PDF -->
+                        <input type="number" name="number" placeholder="Split PDF into how many pages?"
+                            aria-label="Number" id="pagesPerSplit" min="1">
+
+                        <!-- Rename buttons -->
+                        <div class="btn-group-rename" role="group">
+                            <button type="button" class="btn active" id="retainButton">Retain File Name</button>
+                            <button type="button" class="btn" id="renameButton">Rename Files</button>
+                        </div>
+                    </div>
+
+                    <!-- Rename PDF -->
+                    <div id="renameOptions" style="display:none">
+                        <div class="rename-input">
+                            <label>Rename pattern: <br>
+                                <span>(use CSV columns with brackets, e.g. {name}, {id})</span>
+                            </label>
+                            <input type="text" name="text" placeholder="New file name" aria-label="Text"
+                                id="renamePattern">
+                        </div>
+                        <label><input type="checkbox" id="alwaysNumber"> Always include numbering (use
+                            <code>{num_count}</code> in pattern)</label>
+                        <div id="csvFields"></div>
+                    </div>
+
+                    <!-- Preview File Names -->
+                    <div id="previewFilenames"></div>
+
+                    <!-- Process -->
+                    <div class="btn-process-clr">
+                        <button class="btn-process" onclick="clearInput()">Clear</button>
+                        <button class="btn-process" onclick="processFiles()">Process</button>
+                    </div>
+
+                    <div id="downloadLink"></div>
+
+                </div>
             </div>
         </div>
-
-        <div class="split-rename">
-            <div class = "split-pdf">
-                <!-- Split PDF -->
-                <label for="pagesPerSplit">Pages per split:</label>
-                <input type="number" id="pagesPerSplit" value="1" min="1">
-
-                <label><input type="checkbox" id="renameFiles"> Rename files</label>
-            </div>
-
-            <!-- Rename PDF -->
-            <div id="renameOptions" style="display:none">
-                <label>Rename pattern (use CSV columns with brackets, e.g. {name}, {id}):</label>
-                <input type="text" id="renamePattern" value="{name} - file">
-                <label><input type="checkbox" id="alwaysNumber"> Always include numbering (use <code>{num_count}</code>
-                    in
-                    pattern)</label>
-                <div id="csvFields"></div>
-            </div>
-        </div>
-
-        <!-- Preview File Names -->
-        <div id="previewFilenames"></div>
-
-        <!-- Process -->
-        <button onclick="processFiles()">Process</button>
-        <div id="downloadLink"></div>
-
     </main>
 
     <!-- File Error Modal -->

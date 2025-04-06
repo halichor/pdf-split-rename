@@ -1,61 +1,244 @@
+body {
+    font-family: "Outfit", sans-serif;
+    font-optical-sizing: auto;
+    font-style: normal;
+}
+
+/* BUTTONS */
+[role=button],
+[type=button],
+[type=file]::file-selector-button,
+[type=reset],
+[type=submit],
+button {
+    padding: 10px 50px;
+    border: 1px solid #9486E1;
+    background: #9486E1;
+    color: white;
+    border-radius: 15px;
+}
+
+.btn-group-rename button {
+    background: white;
+    color: #373C44;
+    border: 2px solid #eee;
+}
+
+.btn-group-rename button:first-child {
+    border-radius: 15px 0 0 15px !important;
+}
+
+.btn-group-rename button:last-child {
+    border-radius: 0 15px 15px 0 !important;
+}
+
+button {
+    border-radius: 15px;
+}
+
+button:is(:hover, :active, :focus),
+button.active {
+    background: #9486E1 !important;
+    color: white;
+    border: 2px solid #9486E1;
+}
+
+input:not([type=checkbox], [type=radio]),
+select,
+textarea {
+    background: white;
+    border: none;
+    border-radius: 0;
+    border-bottom: 2px solid #eee;
+    padding: 10px 0;
+    line-height: 1;
+}
+
+input:not([type=checkbox], [type=radio]),
+select,
+textarea {
+    margin-bottom: 0;
+}
+
+input:not([type=checkbox], [type=radio], [type=range]) {
+    height: 100%;
+}
+
+[type=checkbox]:checked,
+[type=checkbox]:checked:active,
+[type=checkbox]:checked:focus,
+[type=radio]:checked,
+[type=radio]:checked:active,
+[type=radio]:checked:focus {
+    --pico-background-color: #9486E1;
+    --pico-border-color: #9486E1;
+}
+
+/* =========================
+     FLEXBOX RELATED STYLES
+  ============================*/
+
+/* General container flex */
+.container {
+    display: flex;
+    align-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100%;
+}
+
+/* Body wrapper flex behavior */
+.body-wrapper {
+    filter: drop-shadow(0 0 20px #00000020);
+    background: white;
+    padding: 20px 20px;
+    border-radius: 20px;
+}
+
+/* Upload split flex container */
+.upload-split {
+    display: flex;
+    padding: 20px;
+}
+
+/* Flex behavior for children inside upload-split */
+.upload-split>* {
+    flex: 1 0 50%;
+}
+
+/* Drop zone container flex */
 .drop-zone-container {
+
+    padding: 20px;
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 10px;
+    gap: 20px;
 }
 
-
+/* Drop zone flex behavior */
 .drop-zone {
-    flex: 1 1 auto;
-
-    border: 2px dashed #007bff;
-    padding: 20px;
-    margin-bottom: 10px;
+    border: 3px dashed #9486E1;
+    border-radius: 20px;
+    min-height: 150px;
+    flex: 1 0 100%;
+    display: flex;
+    flex-wrap: wrap;
     text-align: center;
-    position: relative;
+    justify-content: center;
+    align-content: center;
+    align-items: center;
 }
 
-.drop-zone input {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
+/* Flex behavior for input and span inside drop zone */
+.drop-zone input,
+.drop-zone span {
+    flex: 100%;
     cursor: pointer;
 }
 
 .drop-zone span {
-    display: block;
-    padding-top: 10px;
-    color: #007bff;
+    color: #9486E1;
 }
 
+/* =========================
+     NON-FLEX RELATED STYLES
+  ============================*/
+
+/* Split and rename section styling */
 .split-rename {
+    padding: 20px;
+    overflow: hidden;
+}
+
+/* Preview filenames container */
+#previewFilenames {
+    border-radius: 15px !important;
+}
+
+.filename-list {
+    background: #eee;
+    overflow-x: auto;
+    height: fit-content;
+    max-height: 200px;
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 10px;
+    border-radius: 15px !important;
+    padding: 15px;
+
 }
 
-.split-rename > * {
-    flex: 1 1 auto;
+.filename-list ul {
+    list-style: none !important;
+    padding: 0;
+    margin: 0;
 }
 
-/* Flexbox for CSV Field Buttons */
+.filename-list ul li {
+    padding: 0;
+    margin: 0;
+    white-space: nowrap;
+    list-style: none !important;
+
+    font-size: 16px;
+    font-family: "Space Mono", monospace;
+}
+
+.btn-group-rename {
+    margin: 25px 0;
+}
+
+.rename-input {
+    display: flex;
+    align-items: flex-start;
+}
+
+.rename-input>*:first-child {
+    flex: 1 0 33%;
+}
+
+.rename-input>*:last-child {
+    flex: 1 0 66%;
+}
+
+.rename-input label {
+    font-weight: bold;
+}
+
+.rename-input span {
+    font-size: 12px;
+    line-height: 1.5;
+    display: block;
+    font-weight: normal;
+}
+
+#renameOptions label:nth-child(2) {
+    margin: 0 0 25px 0;
+}
+
+.btn-process-clr {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-top: 50px;
+}
+
+.btn-process-clr>* {
+    flex: 1 0 auto;
+}
+
+#csvFields div:first-child {
+    margin-bottom: 10px;
+}
+
 .csv-fields-container {
     display: flex;
     flex-wrap: wrap;
-    /* Allow buttons to wrap in the column */
     gap: 10px;
-    /* Space between buttons */
-    margin-top: 10px;
+
 }
 
 .csv-fields-container button {
-    flex: 0 0 auto;
-    /* Prevent buttons from stretching */
-    width: fit-content;
-    margin: 0;
+    padding: 5px 15px !important;
+    border-radius: 7px;
+    font-size: 16px;
 }
