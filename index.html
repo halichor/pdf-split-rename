@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>PDF Split & Rename</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <link rel="stylesheet" href="styles.css">
+
+    <script src="https://unpkg.com/pdf-lib"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+</head>
+
+<body>
+    <main class="container">
+        <h1>PDF Split & Rename</h1>
+
+        <!-- File Drop -->
+        <div class="drop-zone-container">
+            <div id="pdfDrop" class="drop-zone" onclick="document.getElementById('pdfFile').click()">Drop PDF here or
+                click
+                to browse
+                <input type="file" id="pdfFile" accept="application/pdf" hidden>
+                <span id="pdfFileName">No file selected</span>
+            </div>
+
+            <div id="csvDrop" class="drop-zone" onclick="document.getElementById('csvFile').click()">Drop CSV here or
+                click
+                to browse
+                <input type="file" id="csvFile" accept=".csv" hidden>
+                <span id="csvFileName">No file selected</span>
+            </div>
+        </div>
+
+        <div class="split-rename">
+            <div class = "split-pdf">
+                <!-- Split PDF -->
+                <label for="pagesPerSplit">Pages per split:</label>
+                <input type="number" id="pagesPerSplit" value="1" min="1">
+
+                <label><input type="checkbox" id="renameFiles"> Rename files</label>
+            </div>
+
+            <!-- Rename PDF -->
+            <div id="renameOptions" style="display:none">
+                <label>Rename pattern (use CSV columns with brackets, e.g. {name}, {id}):</label>
+                <input type="text" id="renamePattern" value="{name} - file">
+                <label><input type="checkbox" id="alwaysNumber"> Always include numbering (use <code>{num_count}</code>
+                    in
+                    pattern)</label>
+                <div id="csvFields"></div>
+            </div>
+        </div>
+
+        <!-- Preview File Names -->
+        <div id="previewFilenames"></div>
+
+        <!-- Process -->
+        <button onclick="processFiles()">Process</button>
+        <div id="downloadLink"></div>
+
+    </main>
+
+    <!-- File Error Modal -->
+    <dialog id="modal">
+        <article>
+            <header>
+                <h3>Notice</h3>
+            </header>
+            <p id="modalText"></p>
+            <footer>
+                <button id="modalClose" aria-label="Close">Close</button>
+            </footer>
+        </article>
+    </dialog>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
