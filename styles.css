@@ -1,10 +1,48 @@
-body {
-    font-family: "Outfit", sans-serif;
+/* ============================
+     GENERAL STYLES
+   ============================*/
+
+   body {
+    font-family: "Outfit", sans-serif !important;
     font-optical-sizing: auto;
     font-style: normal;
 }
 
-/* BUTTONS */
+/* Font Awesome */
+@font-face {
+    font-family: 'Font Awesome 6 Free';
+    font-style: normal;
+    font-weight: 900;
+    font-display: block;
+    src: url("../webfonts/fa-solid-900.woff2");
+}
+
+:root,
+:host {
+    --fa-style-family-classic: 'Font Awesome 6 Free';
+    --fa-font-solid: normal 900 1em/1 'Font Awesome 6 Free';
+    --pico-border-color: #9486E1 !important;
+    --pico-form-element-focus-color: #9486E1 !important;
+}
+
+/* ============================
+       BUTTON STYLES
+     ============================*/
+
+[type=checkbox]:checked,
+[type=radio]:checked {
+    --pico-background-color: #9486E1 !important;
+    --pico-border-color: #9486E1 !important;
+    --pico-form-element-focus-color: #9486E1 !important;
+}
+
+[type=checkbox]:hover,
+[type=radio]:hover,
+[type=checkbox]:active,
+[type=radio]:active {
+    --pico-border-color: #9486E1 !important;
+}
+
 [role=button],
 [type=button],
 [type=file]::file-selector-button,
@@ -12,10 +50,11 @@ body {
 [type=submit],
 button {
     padding: 10px 50px;
-    border: 1px solid #9486E1;
+    border: 2px solid #9486E1;
     background: #9486E1;
     color: white;
     border-radius: 15px;
+    line-height: 1;
 }
 
 .btn-group-rename button {
@@ -36,11 +75,17 @@ button {
     border-radius: 15px;
 }
 
-button:is(:hover, :active, :focus),
+button:hover {
+    background: none !important;
+    color: #9486E1;
+    border: 2px solid #9486E1;
+}
+
+.btn-group-rename button:is(:hover, :active, :focus),
 button.active {
     background: #9486E1 !important;
     color: white;
-    border: 2px solid #9486E1;
+    border: 2px solid #9486E1 !important;
 }
 
 input:not([type=checkbox], [type=radio]),
@@ -49,7 +94,10 @@ textarea {
     background: white;
     border: none;
     border-radius: 0;
+    border-top: 2px solid white;
+    border-right: 2px solid white;
     border-bottom: 2px solid #eee;
+    border-left: 2px solid white;
     padding: 10px 0;
     line-height: 1;
 }
@@ -61,101 +109,257 @@ textarea {
 }
 
 input:not([type=checkbox], [type=radio], [type=range]) {
-    height: 100%;
+    height: fit-content;
 }
 
-[type=checkbox]:checked,
-[type=checkbox]:checked:active,
-[type=checkbox]:checked:focus,
-[type=radio]:checked,
-[type=radio]:checked:active,
-[type=radio]:checked:focus {
-    --pico-background-color: #9486E1;
-    --pico-border-color: #9486E1;
+.btn-output:nth-child(1) {
+    color: #373C44;
+    background: none;
+    border-color: #eee;
 }
 
-/* =========================
-     FLEXBOX RELATED STYLES
-  ============================*/
+/* ============================
+       BUTTONS - ANIMATIONS
+     ============================*/
 
-/* General container flex */
-.container {
+     button {
+        position: relative;
+        overflow: hidden;
+        text-align: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    :is(#modalClose, #downloadLink button, #btn-process)::before {
+        content: "\f061"; /* Default icon */
+        font-family: FontAwesome;
+        font-size: 15px;
+        position: absolute;
+        top: 50%;
+        right: -40px;
+        transform: translateY(-50%);
+        opacity: 0;
+        transition: all 0.3s ease;
+    }
+    
+    :is(#modalClose, #downloadLink button, #btn-process):hover {
+        text-indent: -20px;
+    }
+    
+    :is(#modalClose, #downloadLink button, #btn-process):hover::before {
+        opacity: 1;
+        right: 10px;
+    }
+    
+    #btn-process.processing::before {
+        content: "\f110"; /* Spinner icon (FontAwesome f110) */
+        animation: rotate 1s linear infinite; /* Rotating animation */
+        opacity: 1;
+        right: 10px;
+    }
+    
+    #btn-process.done::before {
+        content: "\f00c"; /* Done icon (FontAwesome f00c) */
+        opacity: 1;
+        right: 10px;
+        animation: none; /* Stop spinning */
+    }
+    
+    @keyframes rotate {
+        0% {
+            transform: translateY(-50%) rotate(0deg);
+        }
+        100% {
+            transform: translateY(-50%) rotate(360deg);
+        }
+    }
+    
+    #btn-process.processing, #btn-process.done {
+        pointer-events: none; /* Disable button click during processing */
+    }
+    
+    #btn-process span {
+        display: inline-block;
+        transition: opacity 0.3s ease;
+    }
+    
+    #btn-process.processing span {
+        opacity: 0; /* Hide the default text during processing */
+    }
+    
+    #btn-process.done span {
+        opacity: 0; /* Hide the default text during done */
+    }
+    
+    #btn-process.processing::after {
+        content: "Processing...";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+    
+    #btn-process.done::after {
+        content: "Done!";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+    
+
+/* ============================
+       FLEXBOX STYLES
+     ============================*/
+
+.body-container {
     display: flex;
     align-content: center;
     align-items: center;
-    height: 100vh;
     width: 100%;
+    min-height: 100vh;
+    padding: 50px;
 }
 
-/* Body wrapper flex behavior */
 .body-wrapper {
     filter: drop-shadow(0 0 20px #00000020);
     background: white;
     padding: 20px 20px;
     border-radius: 20px;
+    margin: 50px 20px;
 }
 
-/* Upload split flex container */
 .upload-split {
     display: flex;
     padding: 20px;
 }
 
-/* Flex behavior for children inside upload-split */
-.upload-split>* {
+.upload-split :is(.drop-zone-container, .split-rename) {
     flex: 1 0 50%;
 }
 
-/* Drop zone container flex */
 .drop-zone-container {
-
     padding: 20px;
     display: flex;
     flex-wrap: wrap;
     gap: 20px;
 }
 
-/* Drop zone flex behavior */
 .drop-zone {
     border: 3px dashed #9486E1;
     border-radius: 20px;
-    min-height: 150px;
+    padding: 20px;
+    min-height: 250px;
+    line-height: 1.15;
     flex: 1 0 100%;
+    
     display: flex;
-    flex-wrap: wrap;
-    text-align: center;
-    justify-content: center;
-    align-content: center;
+    flex-direction: column;
+    justify-content: center; 
     align-items: center;
+    position: relative;
+    text-align: center; 
 }
 
-/* Flex behavior for input and span inside drop zone */
+.drop-zone:hover {
+    border-color: #6b47e7;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.drop-zone img {
+    width: 100px;
+    height: auto;
+    display: block;
+    margin-bottom: 10px;
+    margin-top: auto;
+}
+
 .drop-zone input,
 .drop-zone span {
-    flex: 100%;
     cursor: pointer;
+    text-align: center; /* Ensure text inside span/input is centered */
 }
 
-.drop-zone span {
-    color: #9486E1;
+#pdfFileName,
+#csvFileName {
+    align-self: center;
+    text-align: center;
+    margin-top: auto;
+    color: #bbb;
 }
 
-/* =========================
-     NON-FLEX RELATED STYLES
-  ============================*/
+.drop-zone {
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
 
-/* Split and rename section styling */
+.drop-zone:hover {
+    animation: backgroundPulse 1s infinite alternate;
+}
+
+@keyframes backgroundPulse {
+    0% {
+        background-color: #f5f5f5;
+    }
+
+    100% {
+        background-color: #e1d9f3;
+    }
+}
+
+.drop-zone img {
+    transition: transform 0.2s ease-in-out, opacity 0.3s ease;
+}
+
+.drop-zone:hover img {
+    transform: scale(1.1);
+    opacity: 0.8;
+}
+
+.drop-zone #csvFileName {
+    transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.drop-zone:hover #csvFileName {
+    color: #6b47e7;
+    transform: translateY(-5px);
+}
+
+#pdfFileName,
+#csvFileName {
+    transition: color 0.3s ease;
+}
+
+.drop-zone:hover #pdfFileName,
+.drop-zone:hover #csvFileName {
+    color: #6b47e7;
+}
+
+/* ============================
+       FLEX BUTTONS - PROCESS
+     ============================*/
+
 .split-rename {
     padding: 20px;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    flex: 1;
 }
 
-/* Preview filenames container */
+.split-rename h2 {
+    margin-bottom: 50px;
+}
+
 #previewFilenames {
+    margin: 25px 0 50px 0;
     border-radius: 15px !important;
+    flex: 100%;
+    width: 100%;
 }
 
 .filename-list {
+    margin-top: 15px;
     background: #eee;
     overflow-x: auto;
     height: fit-content;
@@ -164,7 +368,6 @@ input:not([type=checkbox], [type=radio], [type=range]) {
     flex-wrap: wrap;
     border-radius: 15px !important;
     padding: 15px;
-
 }
 
 .filename-list ul {
@@ -178,26 +381,20 @@ input:not([type=checkbox], [type=radio], [type=range]) {
     margin: 0;
     white-space: nowrap;
     list-style: none !important;
-
     font-size: 16px;
     font-family: "Space Mono", monospace;
 }
 
 .btn-group-rename {
-    margin: 25px 0;
+    margin: 25px 0 10px 0;
 }
 
 .rename-input {
-    display: flex;
-    align-items: flex-start;
+    margin-bottom: 25px;
 }
 
-.rename-input>*:first-child {
-    flex: 1 0 33%;
-}
-
-.rename-input>*:last-child {
-    flex: 1 0 66%;
+.rename-input>* {
+    flex: 1 0 100% !important;
 }
 
 .rename-input label {
@@ -205,40 +402,162 @@ input:not([type=checkbox], [type=radio], [type=range]) {
 }
 
 .rename-input span {
-    font-size: 12px;
+    font-size: 14px;
     line-height: 1.5;
     display: block;
     font-weight: normal;
 }
 
-#renameOptions label:nth-child(2) {
-    margin: 0 0 25px 0;
+#renameOptions {
+    flex-wrap: wrap;
 }
 
-.btn-process-clr {
+#renameOptions label:last-child span {
+    font-size: 14px;
+    display: block;
+    margin-left: 2rem;
+}
+
+.rename-input,
+#csvFields {
+    flex: 1 0 100%;
+}
+
+.btn-outputs {
+    align-self: flex-end;
     display: flex;
     flex-wrap: wrap;
-    gap: 20px;
+    gap: 0 20px;
     margin-top: 50px;
+    width: 100%;
+    /* Full width */
+    margin-top: auto;
 }
 
-.btn-process-clr>* {
+.btn-outputs>*:not(:last-child) {
     flex: 1 0 auto;
 }
 
-#csvFields div:first-child {
-    margin-bottom: 10px;
+.btn-outputs>*:last-child {
+    margin-top: 20px;
+    flex: 1 0 100%;
 }
+
+#downloadLink button {
+    width: 100% !important;
+}
+
+/* ============================
+       CSV FIELDS CONTAINER
+     ============================*/
 
 .csv-fields-container {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 5px;
+    margin-top: 15px;
+    margin-bottom: 25px;
+}
 
+.csv-fields-container [type=button] {
+    margin-bottom: 0;
+    padding: 5px !important;
+    font-size: 12px;
+    background: none;
+    border: 2px solid #eee;
+    color: #373C44;
+    font-family: "Space Mono", monospace !important;
+}
+
+.csv-fields-container [type=button]:hover {
+    background: #eee !important;
 }
 
 .csv-fields-container button {
     padding: 5px 15px !important;
     border-radius: 7px;
     font-size: 16px;
+}
+
+/* ============================
+       MODALS
+     ============================*/
+
+#modal article> :is(header, footer) {
+    border: none;
+    background: none;
+}
+
+/* ============================
+       RESPONSIVENESS
+     ============================*/
+
+@media only screen and (max-width: 1200px) {
+    .upload-split {
+        flex-direction: column;
+    }
+}
+
+@media only screen and (max-width: 800px) {
+    .body-container {
+        max-width: 100% !important;
+        margin: 0;
+        padding: 0;
+        min-height: 100%;
+    }
+
+    .body-wrapper {
+        margin: 20px;
+    }
+}
+
+@media only screen and (max-width: 600px) {
+
+    [role=button],
+    [type=button],
+    [type=file]::file-selector-button,
+    [type=reset],
+    [type=submit],
+    button {
+        padding: 10px;
+    }
+
+    .upload-split {
+        padding: 0;
+    }
+}
+
+@media only screen and (max-width: 360px) {
+    .body-wrapper {
+        padding: 10px;
+    }
+}
+
+/* ============================
+       FOCUS
+     ============================*/
+
+*:focus,
+*:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+input:focus {
+  border: 2px solid #9486E150;
+  opacity: 1;
+  transition:
+    border 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+    transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity 0.25s ease-in-out;
+}
+
+
+input:focus {
+  border: 2px solid #9486E150;
+  opacity: 1;
+  transition:
+    border 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+    transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity 0.25s ease-in-out;
 }

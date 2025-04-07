@@ -69,7 +69,7 @@ document.getElementById('renameButton').addEventListener('click', () => {
     document.getElementById('retainButton').classList.remove('active');
     document.getElementById('renameButton').classList.add('active');
 
-    document.getElementById('renameOptions').style.display = 'block'; // Show rename options
+    document.getElementById('renameOptions').style.display = 'flex'; // Show rename options
     updatePreview(); // Ensure preview is updated
 });
 
@@ -88,10 +88,19 @@ document.getElementById('csvFile').addEventListener('change', (e) => {
                 csvHeaders = results.meta.fields || [];
                 renderCSVButtons();
                 updatePreview();
+                
+                // After CSV is uploaded, check if "rename" button is active
+                const renameButtonActive = document.getElementById('renameButton').classList.contains('active');
+                if (renameButtonActive) {
+                    document.getElementById('renameOptions').style.display = 'flex'; // Show rename options if "rename" is active
+                } else {
+                    document.getElementById('renameOptions').style.display = 'none'; // Hide if not
+                }
             }
         });
     }
 });
+
 
 function renderCSVButtons() {
     const container = document.getElementById('csvFields');
@@ -178,14 +187,31 @@ function updatePreview() {
                 console.log('Total Pages:', totalPages);
                 console.log('File Count (number of splits):', fileCount);
 
+                // Track used filenames for uniqueness
+                const usedFilenames = new Set();
+
                 // Generate preview filenames based on the split count
                 const previews = Array.from({ length: fileCount }, (_, idx) => {
                     const data = csvData[idx] || {}; // Use CSV data if available, else an empty object
-                    return formatFilename(pattern, data, idx, fileCount, alwaysNumber);
+                    let filename = formatFilename(pattern, data, idx, fileCount, alwaysNumber);
+
+                    // Ensure filename uniqueness by appending a number if necessary
+                    let uniqueFilename = filename;
+                    let counter = 1;
+                    while (usedFilenames.has(uniqueFilename)) {
+                        // If the filename already exists, append a number
+                        uniqueFilename = `${filename}_${counter}`;
+                        counter++;
+                    }
+
+                    // Add the unique filename to the set and use it in the preview
+                    usedFilenames.add(uniqueFilename);
+
+                    return uniqueFilename;
                 });
 
                 // Display the preview filenames using the old HTML structure
-                previewContainer.innerHTML = `<strong>Preview Filenames:</strong><div class="filename-list"><ul>${previews.map(name => `<li>${name}</li>`).join('')}</ul></div>`;
+                previewContainer.innerHTML = `<strong>Preview Filenames:</strong><div class="filename-list"><ul>${previews.map(name => `<li>${name}.pdf</li>`).join('')}</ul></div>`;
                 previewContainer.style.display = 'block'; // Show the preview container
             })
             .catch((err) => {
@@ -303,16 +329,10 @@ document.addEventListener('DOMContentLoaded', () => {
     setupAutoRefreshForInputs();
 });
 
-
 function formatFilename(pattern, data, index, totalCount, alwaysNumber) {
     let filename = pattern;
-    const digits = totalCount.toString().length;
-    const num = String(index + 1).padStart(digits, '0');
-
-    // If alwaysNumber is checked, replace {num_count} with the number
-    if (alwaysNumber || pattern.includes('{num_count}')) {
-        filename = filename.replace(/{num_count}/g, num);
-    }
+    const digits = totalCount.toString().length;  // Get the total length for the number formatting
+    const num = String(index + 1).padStart(digits, '0');  // Add leading zeros based on the total count length
 
     // Replace other CSV placeholders like {name}, {id}, etc.
     if (data) {
@@ -322,60 +342,118 @@ function formatFilename(pattern, data, index, totalCount, alwaysNumber) {
         }
     }
 
-    return filename + ".pdf";
+    // Check if filename is already used (handle non-unique filenames)
+    let usedFilenames = new Set();
+    if (usedFilenames.has(filename)) {
+        // If the filename is not unique, proceed as if alwaysNumber is checked
+        alwaysNumber = true;
+    } else {
+        usedFilenames.add(filename);  // Track this filename as used
+    }
+
+    // If alwaysNumber is checked or filename is not unique, apply numbering
+    if (alwaysNumber) {
+        // Check if {num_count} exists in the pattern
+        if (filename.includes('{num_count}')) {
+            filename = filename.replace(/{num_count}/g, num);
+        } else {
+            // If no {num_count} exists, append the formatted number with leading zeros
+            filename = filename.replace(/\.pdf$/, `_${num}.pdf`);
+        }
+    } else if (filename.includes('{num_count}')) {
+        // If alwaysNumber is not checked, only replace {num_count} if it's present
+        filename = filename.replace(/{num_count}/g, num);
+    }
+
+    return filename;
 }
 
 async function processFiles() {
+    const button = document.getElementById('btn-process');
+    const downloadLinkContainer = document.getElementById('downloadLink');
     const pdfInput = document.getElementById('pdfFile').files[0];
-    if (!pdfInput) return showModal('Upload a PDF file first.');
 
-    const pdfBytes = await pdfInput.arrayBuffer();
-    const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
-    const totalPages = pdfDoc.getPageCount();
-    const pagesPerSplit = parseInt(document.getElementById('pagesPerSplit').value);
-    if (!pagesPerSplit || pagesPerSplit < 1) return showModal('Please enter a valid number of pages per split.');
-
-    // Check the active state of the buttons instead of checkbox
-    const renameButtonActive = document.getElementById('renameButton').classList.contains('active');
-    const pattern = document.getElementById('renamePattern').value;
-    const alwaysNumber = document.getElementById('alwaysNumber').checked;
-
-    const zip = new JSZip();
-    const fileCount = Math.ceil(totalPages / pagesPerSplit);
-    let splitIndex = 0;
-
-    for (let startPage = 0; startPage < totalPages; startPage += pagesPerSplit) {
-        const newPdf = await PDFLib.PDFDocument.create();
-        const endPage = Math.min(startPage + pagesPerSplit, totalPages);
-        const pagesToCopy = await newPdf.copyPages(pdfDoc, Array.from({ length: endPage - startPage }, (_, j) => startPage + j));
-        pagesToCopy.forEach(page => newPdf.addPage(page));
-        const splitPdfBytes = await newPdf.save();
-
-        let filename = `file_${splitIndex + 1}.pdf`;
-        if (renameButtonActive) {
-            const data = csvData[splitIndex] || {};
-            filename = formatFilename(pattern, data, splitIndex, fileCount, alwaysNumber);
-        }
-        zip.file(filename, splitPdfBytes);
-        splitIndex++;
+    // Check if a PDF is uploaded
+    if (!pdfInput) {
+        return showModal('Upload a PDF file first.');
     }
 
-    const blob = await zip.generateAsync({ type: 'blob' });
-    const url = URL.createObjectURL(blob);
+    // Check if download button already exists, if so, remove it before processing
+    if (downloadLinkContainer.innerHTML) {
+        downloadLinkContainer.innerHTML = '';  // Hide the download link before processing
+    }
 
-    // Update the download section to include a button
-    const downloadButton = document.createElement('button');
-    downloadButton.textContent = 'Download ZIP';
-    downloadButton.onclick = () => {
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'output_files.zip'; // Set the default filename for the ZIP file
-        a.click();
-    };
+    // Start processing — update button text and disable it
+    button.textContent = 'Processing...'; // Change text content
+    button.classList.add('processing');   // Add processing class (optional, for styling)
+    button.disabled = true;               // Disable button to prevent multiple clicks
 
-    // Append the download button to the downloadLink container
-    const downloadLinkContainer = document.getElementById('downloadLink');
-    downloadLinkContainer.innerHTML = ''; // Clear any previous content
-    downloadLinkContainer.appendChild(downloadButton);
+    try {
+        const pdfBytes = await pdfInput.arrayBuffer();
+        const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
+        const totalPages = pdfDoc.getPageCount();
+        const pagesPerSplit = parseInt(document.getElementById('pagesPerSplit').value);
+
+        if (!pagesPerSplit || pagesPerSplit < 1) {
+            return showModal('Please enter a valid number of pages per split.');
+        }
+
+        const zip = new JSZip();
+        const fileCount = Math.ceil(totalPages / pagesPerSplit);
+        let splitIndex = 0;
+        const usedFilenames = new Set(); // Set to track already used filenames
+
+        for (let startPage = 0; startPage < totalPages; startPage += pagesPerSplit) {
+            const newPdf = await PDFLib.PDFDocument.create();
+            const endPage = Math.min(startPage + pagesPerSplit, totalPages);
+            const pagesToCopy = await newPdf.copyPages(pdfDoc, Array.from({ length: endPage - startPage }, (_, j) => startPage + j));
+            pagesToCopy.forEach(page => newPdf.addPage(page));
+            const splitPdfBytes = await newPdf.save();
+
+            let filename = pdfInput.name.replace('.pdf', ''); // Get original filename
+            let uniqueFilename = filename;
+            let counter = 1;
+            while (usedFilenames.has(uniqueFilename)) {
+                uniqueFilename = `${filename}_${counter}`;
+                counter++;
+            }
+
+            usedFilenames.add(uniqueFilename);
+            zip.file(`${uniqueFilename}.pdf`, splitPdfBytes); // Save the split PDF with the unique filename
+            splitIndex++;
+        }
+
+        const blob = await zip.generateAsync({ type: 'blob' });
+        const url = URL.createObjectURL(blob);
+
+        // Create download button and show it
+        const downloadButton = document.createElement('button');
+        downloadButton.textContent = 'Download ZIP';
+        downloadButton.onclick = () => {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'output_files.zip'; // Set the default filename for the ZIP file
+            a.click();
+        };
+
+        // Update UI and show the download button
+        downloadLinkContainer.innerHTML = ''; // Clear any previous content
+        downloadLinkContainer.appendChild(downloadButton);
+
+        // Update button text to 'Done' and enable it again
+        button.textContent = 'Done!';
+        button.classList.remove('processing');   // Remove processing class
+        button.classList.add('done');           // Optional: Add done class for styling
+        setTimeout(() => {
+            // After 1 second, revert the button back to 'Process' state
+            button.textContent = 'Process';
+            button.disabled = false;             // Enable the button again
+            button.classList.remove('done');
+        }, 1000);
+
+    } catch (error) {
+        // In case of an error, handle it and show a modal or message
+        console.error(error);
+        showModal('An error occurred while processing the file.');
+    }
 }
-

@@ -18,28 +18,25 @@
     <script src="https://unpkg.com/pdf-lib"></script>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+    <script src="https://kit.fontawesome.com/cd3145e516.js" crossorigin="anonymous"></script>
 </head>
 
 <body>
-    <main class="container">
+    <main class="body-container">
         <div class="body-wrapper">
             <div class="upload-split">
                 <!-- File Drop -->
                 <div class="drop-zone-container">
-                    <div id="pdfDrop" class="drop-zone" onclick="document.getElementById('pdfFile').click()">Drop PDF
-                        here
-                        or
-                        click
-                        to browse
+                    <div id="pdfDrop" class="drop-zone" onclick="document.getElementById('pdfFile').click()">
+                        <img src="upload.png" alt="Upload">
+                        Drop PDF to upload<br><span>or browse</span>
                         <input type="file" id="pdfFile" accept="application/pdf" hidden>
                         <span id="pdfFileName">No file selected</span>
-                    </div>
+                    </div>                    
 
-                    <div id="csvDrop" class="drop-zone" onclick="document.getElementById('csvFile').click()">Drop CSV
-                        here
-                        or
-                        click
-                        to browse
+                    <div id="csvDrop" class="drop-zone" onclick="document.getElementById('csvFile').click()">
+                        <img src="upload.png" alt="Upload">
+                        Drop CSV to upload<br><span>or browse</span>
                         <input type="file" id="csvFile" accept=".csv" hidden>
                         <span id="csvFileName">No file selected</span>
                     </div>
@@ -48,14 +45,14 @@
                 <!-- Split and Rename -->
                 <div class="split-rename">
                     <div class="split-pdf">
-                        <h2>Options</h2>
+                        <h2>Rename and Split PDF</h2>
                         <!-- Split PDF -->
                         <input type="number" name="number" placeholder="Split PDF into how many pages?"
                             aria-label="Number" id="pagesPerSplit" min="1">
 
                         <!-- Rename buttons -->
                         <div class="btn-group-rename" role="group">
-                            <button type="button" class="btn active" id="retainButton">Retain File Name</button>
+                            <button type="button" class="btn active" id="retainButton">Retain Name</button>
                             <button type="button" class="btn" id="renameButton">Rename Files</button>
                         </div>
                     </div>
@@ -63,27 +60,25 @@
                     <!-- Rename PDF -->
                     <div id="renameOptions" style="display:none">
                         <div class="rename-input">
-                            <label>Rename pattern: <br>
-                                <span>(use CSV columns with brackets, e.g. {name}, {id})</span>
-                            </label>
                             <input type="text" name="text" placeholder="New file name" aria-label="Text"
                                 id="renamePattern">
                         </div>
-                        <label><input type="checkbox" id="alwaysNumber"> Always include numbering (use
-                            <code>{num_count}</code> in pattern)</label>
                         <div id="csvFields"></div>
+                        <label><input type="checkbox" id="alwaysNumber">
+                            Include numbering in filename <br>
+                            <span>(Insert <code>{num_count}</code> in the name field where you want it to go)</span>
+                        </label>
                     </div>
 
                     <!-- Preview File Names -->
                     <div id="previewFilenames"></div>
 
                     <!-- Process -->
-                    <div class="btn-process-clr">
-                        <button class="btn-process" onclick="clearInput()">Clear</button>
-                        <button class="btn-process" onclick="processFiles()">Process</button>
+                    <div class="btn-outputs">
+                        <button class="btn-output" onclick="clearInput()">Clear</button>
+                        <button id="btn-process" class="btn-output" onclick="processFiles()">Process</button>
+                        <div id="downloadLink"></div>
                     </div>
-
-                    <div id="downloadLink"></div>
 
                 </div>
             </div>
@@ -94,7 +89,7 @@
     <dialog id="modal">
         <article>
             <header>
-                <h3>Notice</h3>
+                <h4>There was a problem...</h4>
             </header>
             <p id="modalText"></p>
             <footer>
