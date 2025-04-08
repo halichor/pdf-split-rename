@@ -373,6 +373,7 @@ button {
 
 .filename-list {
     margin-top: 15px;
+    margin-bottom: 50px;
     background: #eee;
     overflow-x: auto;
     height: fit-content;
