@@ -2,7 +2,8 @@
      GENERAL STYLES
    ============================*/
 
-   body {
+body,
+body :is(h1, h2, h3, h4, h5, h6) {
     font-family: "Outfit", sans-serif !important;
     font-optical-sizing: auto;
     font-style: normal;
@@ -26,8 +27,8 @@
 }
 
 /* ============================
-       BUTTON STYLES
-     ============================*/
+          BUTTON STYLES
+        ============================*/
 
 [type=checkbox]:checked,
 [type=radio]:checked {
@@ -119,8 +120,8 @@ input:not([type=checkbox], [type=radio], [type=range]) {
 }
 
 /* ============================
-       BUTTONS - ANIMATIONS
-     ============================*/
+          BUTTONS - ANIMATIONS
+        ============================*/
 
 button {
     position: relative;
@@ -219,8 +220,8 @@ button {
 
 
 /* ============================
-       FLEXBOX STYLES
-     ============================*/
+          FLEXBOX STYLES
+        ============================*/
 
 .body-container {
     display: flex;
@@ -350,8 +351,8 @@ button {
 }
 
 /* ============================
-       FLEX BUTTONS - PROCESS
-     ============================*/
+          FLEX BUTTONS - PROCESS
+        ============================*/
 
 .split-rename {
     padding: 20px;
@@ -463,8 +464,8 @@ button {
 }
 
 /* ============================
-       CSV FIELDS CONTAINER
-     ============================*/
+          CSV FIELDS CONTAINER
+        ============================*/
 
 .csv-fields-container {
     display: flex;
@@ -495,8 +496,8 @@ button {
 }
 
 /* ============================
-       MODALS
-     ============================*/
+          MODALS
+        ============================*/
 
 #modal article> :is(header, footer) {
     border: none;
@@ -504,8 +505,8 @@ button {
 }
 
 /* ============================
-       RESPONSIVENESS
-     ============================*/
+          RESPONSIVENESS
+        ============================*/
 
 @media only screen and (max-width: 1200px) {
     .upload-split {
@@ -549,8 +550,8 @@ button {
 }
 
 /* ============================
-       FOCUS
-     ============================*/
+          FOCUS
+        ============================*/
 
 *:focus,
 *:focus-visible {
@@ -578,8 +579,8 @@ input:focus {
 }
 
 /* ============================
-       CREDITS
-     ============================*/
+          CREDITS
+        ============================*/
 
 .credits {
     margin-top: auto;
