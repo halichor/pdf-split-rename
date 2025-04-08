@@ -101,9 +101,12 @@ document.getElementById('csvFile').addEventListener('change', (e) => {
     }
 });
 
-
+// KEEP THIS ITS WORKING!!!
 function renderCSVButtons() {
     const container = document.getElementById('csvFields');
+
+    // Clear existing CSV field buttons to refresh them
+    container.innerHTML = '';
 
     // Create a div for the header
     const headerDiv = document.createElement('div');
@@ -329,10 +332,15 @@ document.addEventListener('DOMContentLoaded', () => {
     setupAutoRefreshForInputs();
 });
 
+// FOR TESTING
 function formatFilename(pattern, data, index, totalCount, alwaysNumber) {
     let filename = pattern;
     const digits = totalCount.toString().length;  // Get the total length for the number formatting
     const num = String(index + 1).padStart(digits, '0');  // Add leading zeros based on the total count length
+
+    console.log("Initial filename pattern:", filename);
+    console.log("Total count (for padding):", totalCount);
+    console.log("Generated number (with leading zeros):", num);
 
     // Replace other CSV placeholders like {name}, {id}, etc.
     if (data) {
@@ -342,32 +350,39 @@ function formatFilename(pattern, data, index, totalCount, alwaysNumber) {
         }
     }
 
-    // Check if filename is already used (handle non-unique filenames)
-    let usedFilenames = new Set();
-    if (usedFilenames.has(filename)) {
-        // If the filename is not unique, proceed as if alwaysNumber is checked
-        alwaysNumber = true;
-    } else {
-        usedFilenames.add(filename);  // Track this filename as used
-    }
+    // Debug: Output filename after replacing placeholders
+    console.log("Filename after replacing placeholders:", filename);
 
-    // If alwaysNumber is checked or filename is not unique, apply numbering
+    // Debug: Check whether alwaysNumber is checked
+    console.log("Is 'alwaysNumber' checked?", alwaysNumber);
+
+    // If alwaysNumber is checked, apply numbering
     if (alwaysNumber) {
-        // Check if {num_count} exists in the pattern
-        if (filename.includes('{num_count}')) {
-            filename = filename.replace(/{num_count}/g, num);
-        } else {
-            // If no {num_count} exists, append the formatted number with leading zeros
-            filename = filename.replace(/\.pdf$/, `_${num}.pdf`);
+        console.log("Applying numbering due to 'alwaysNumber' being true.");
+
+        // Insert {num_count} at the end before replacing
+        if (!filename.includes('{num_count}')) {
+            filename += '_{num_count}'; // Insert {num_count} at the end
         }
+
+        // Replace {num_count} with the formatted number
+        filename = filename.replace(/{num_count}/g, num);
+
+        // Debug: Check if number was added
+        console.log("Filename after replacing {num_count}:", filename);
     } else if (filename.includes('{num_count}')) {
         // If alwaysNumber is not checked, only replace {num_count} if it's present
         filename = filename.replace(/{num_count}/g, num);
     }
 
+    // Debug: Output the final filename
+    console.log("Final formatted filename:", filename);
+
     return filename;
 }
 
+
+// THIS WORKS!!
 async function processFiles() {
     const button = document.getElementById('btn-process');
     const downloadLinkContainer = document.getElementById('downloadLink');
@@ -403,6 +418,18 @@ async function processFiles() {
         let splitIndex = 0;
         const usedFilenames = new Set(); // Set to track already used filenames
 
+        // Get the rename pattern and settings from the UI
+        const renameButtonActive = document.getElementById('renameButton').classList.contains('active');
+        const retainButtonActive = document.getElementById('retainButton').classList.contains('active');
+        const pattern = document.getElementById('renamePattern').value;
+        const alwaysNumber = document.getElementById('alwaysNumber').checked;
+        const originalFilename = pdfInput.name.replace('.pdf', ''); // Get the original filename (without extension)
+
+        // Validation for rename pattern when "rename" is selected
+        if (renameButtonActive && !pattern) {
+            return showModal('Please provide a valid rename pattern.');
+        }
+
         for (let startPage = 0; startPage < totalPages; startPage += pagesPerSplit) {
             const newPdf = await PDFLib.PDFDocument.create();
             const endPage = Math.min(startPage + pagesPerSplit, totalPages);
@@ -410,10 +437,22 @@ async function processFiles() {
             pagesToCopy.forEach(page => newPdf.addPage(page));
             const splitPdfBytes = await newPdf.save();
 
-            let filename = pdfInput.name.replace('.pdf', ''); // Get original filename
+            let filename = originalFilename; // Start with the original filename
+
+            if (retainButtonActive) {
+                // If "retain" is selected, append numbering to the original filename
+                filename = `${originalFilename}_${String(splitIndex + 1).padStart(2, '0')}`;
+            } else if (renameButtonActive) {
+                // If "rename" is selected, apply the renaming pattern
+                const data = csvData[splitIndex] || {}; // Use CSV data if available
+                filename = formatFilename(pattern, data, splitIndex, fileCount, alwaysNumber);
+            }
+
+            // Check if the filename already exists in the set of used filenames
             let uniqueFilename = filename;
             let counter = 1;
             while (usedFilenames.has(uniqueFilename)) {
+                // If the filename is already used, append a number
                 uniqueFilename = `${filename}_${counter}`;
                 counter++;
             }
@@ -457,3 +496,4 @@ async function processFiles() {
         showModal('An error occurred while processing the file.');
     }
 }
+

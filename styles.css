@@ -122,91 +122,101 @@ input:not([type=checkbox], [type=radio], [type=range]) {
        BUTTONS - ANIMATIONS
      ============================*/
 
-     button {
-        position: relative;
-        overflow: hidden;
-        text-align: center;
-        transition: all 0.3s ease;
-        cursor: pointer;
+button {
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+:is(#modalClose, #downloadLink button, #btn-process)::before {
+    content: "\f061";
+    /* Default icon */
+    font-family: FontAwesome;
+    font-size: 15px;
+    position: absolute;
+    top: 50%;
+    right: -40px;
+    transform: translateY(-50%);
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+:is(#modalClose, #downloadLink button, #btn-process):hover {
+    text-indent: -20px;
+}
+
+:is(#modalClose, #downloadLink button, #btn-process):hover::before {
+    opacity: 1;
+    right: 10px;
+}
+
+#btn-process.processing::before {
+    content: "\f110";
+    /* Spinner icon (FontAwesome f110) */
+    animation: rotate 1s linear infinite;
+    /* Rotating animation */
+    opacity: 1;
+    right: 10px;
+}
+
+#btn-process.done::before {
+    content: "\f00c";
+    /* Done icon (FontAwesome f00c) */
+    opacity: 1;
+    right: 10px;
+    animation: none;
+    /* Stop spinning */
+}
+
+@keyframes rotate {
+    0% {
+        transform: translateY(-50%) rotate(0deg);
     }
-    
-    :is(#modalClose, #downloadLink button, #btn-process)::before {
-        content: "\f061"; /* Default icon */
-        font-family: FontAwesome;
-        font-size: 15px;
-        position: absolute;
-        top: 50%;
-        right: -40px;
-        transform: translateY(-50%);
-        opacity: 0;
-        transition: all 0.3s ease;
+
+    100% {
+        transform: translateY(-50%) rotate(360deg);
     }
-    
-    :is(#modalClose, #downloadLink button, #btn-process):hover {
-        text-indent: -20px;
-    }
-    
-    :is(#modalClose, #downloadLink button, #btn-process):hover::before {
-        opacity: 1;
-        right: 10px;
-    }
-    
-    #btn-process.processing::before {
-        content: "\f110"; /* Spinner icon (FontAwesome f110) */
-        animation: rotate 1s linear infinite; /* Rotating animation */
-        opacity: 1;
-        right: 10px;
-    }
-    
-    #btn-process.done::before {
-        content: "\f00c"; /* Done icon (FontAwesome f00c) */
-        opacity: 1;
-        right: 10px;
-        animation: none; /* Stop spinning */
-    }
-    
-    @keyframes rotate {
-        0% {
-            transform: translateY(-50%) rotate(0deg);
-        }
-        100% {
-            transform: translateY(-50%) rotate(360deg);
-        }
-    }
-    
-    #btn-process.processing, #btn-process.done {
-        pointer-events: none; /* Disable button click during processing */
-    }
-    
-    #btn-process span {
-        display: inline-block;
-        transition: opacity 0.3s ease;
-    }
-    
-    #btn-process.processing span {
-        opacity: 0; /* Hide the default text during processing */
-    }
-    
-    #btn-process.done span {
-        opacity: 0; /* Hide the default text during done */
-    }
-    
-    #btn-process.processing::after {
-        content: "Processing...";
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-    }
-    
-    #btn-process.done::after {
-        content: "Done!";
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-    }
-    
+}
+
+#btn-process.processing,
+#btn-process.done {
+    pointer-events: none;
+    /* Disable button click during processing */
+}
+
+#btn-process span {
+    display: inline-block;
+    transition: opacity 0.3s ease;
+}
+
+#btn-process.processing span {
+    opacity: 0;
+    /* Hide the default text during processing */
+}
+
+#btn-process.done span {
+    opacity: 0;
+    /* Hide the default text during done */
+}
+
+#btn-process.processing::after {
+    content: "Processing...";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+#btn-process.done::after {
+    content: "Done!";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
 
 /* ============================
        FLEXBOX STYLES
@@ -216,6 +226,9 @@ input:not([type=checkbox], [type=radio], [type=range]) {
     display: flex;
     align-content: center;
     align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    flex-wrap: wrap;
     width: 100%;
     min-height: 100vh;
     padding: 50px;
@@ -252,13 +265,13 @@ input:not([type=checkbox], [type=radio], [type=range]) {
     min-height: 250px;
     line-height: 1.15;
     flex: 1 0 100%;
-    
+
     display: flex;
     flex-direction: column;
-    justify-content: center; 
+    justify-content: center;
     align-items: center;
     position: relative;
-    text-align: center; 
+    text-align: center;
 }
 
 .drop-zone:hover {
@@ -277,7 +290,8 @@ input:not([type=checkbox], [type=radio], [type=range]) {
 .drop-zone input,
 .drop-zone span {
     cursor: pointer;
-    text-align: center; /* Ensure text inside span/input is centered */
+    text-align: center;
+    /* Ensure text inside span/input is centered */
 }
 
 #pdfFileName,
@@ -352,7 +366,6 @@ input:not([type=checkbox], [type=radio], [type=range]) {
 }
 
 #previewFilenames {
-    margin: 25px 0 50px 0;
     border-radius: 15px !important;
     flex: 100%;
     width: 100%;
@@ -410,6 +423,7 @@ input:not([type=checkbox], [type=radio], [type=range]) {
 
 #renameOptions {
     flex-wrap: wrap;
+    margin-bottom: 15px;
 }
 
 #renameOptions label:last-child span {
@@ -428,7 +442,6 @@ input:not([type=checkbox], [type=radio], [type=range]) {
     display: flex;
     flex-wrap: wrap;
     gap: 0 20px;
-    margin-top: 50px;
     width: 100%;
     /* Full width */
     margin-top: auto;
@@ -439,11 +452,11 @@ input:not([type=checkbox], [type=radio], [type=range]) {
 }
 
 .btn-outputs>*:last-child {
-    margin-top: 20px;
     flex: 1 0 100%;
 }
 
 #downloadLink button {
+    margin-top: 20px;
     width: 100% !important;
 }
 
@@ -544,20 +557,37 @@ input:not([type=checkbox], [type=radio], [type=range]) {
 }
 
 input:focus {
-  border: 2px solid #9486E150;
-  opacity: 1;
-  transition:
-    border 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
-    transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
-    opacity 0.25s ease-in-out;
+    border: 2px solid #9486E150;
+    opacity: 1;
+    transition:
+        border 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+        transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+        opacity 0.25s ease-in-out;
 }
 
 
 input:focus {
-  border: 2px solid #9486E150;
-  opacity: 1;
-  transition:
-    border 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
-    transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
-    opacity 0.25s ease-in-out;
+    border: 2px solid #9486E150;
+    opacity: 1;
+    transition:
+        border 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+        transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+        opacity 0.25s ease-in-out;
+}
+
+/* ============================
+       CREDITS
+     ============================*/
+
+.credits {
+    margin-top: auto;
+}
+
+[data-tooltip]:not(a, button, input, [role=button]) {
+    height: fit-content;
+    border-bottom: none;
+    text-decoration: none;
+    cursor: help;
+    font-size: 16px;
+    color: #9486E1;
 }
